@@ -104,8 +104,8 @@ If the accumulator is zero, jump to a program address.
 
 It helps to understand the Toy CPU by looking at a sample program. In
 this example, we'll "flash" the accumulator lights. First we'll light
-up the lower bits, then the higher bits, then all 8 bits:
-
+up the lower bits, then the higher bits, then all 8 bits. This tests
+sequential operation of the Toy:
 
     memory[0] = 20; /* LOAD accum from addr */
     memory[1] = 7;
@@ -117,6 +117,21 @@ up the lower bits, then the higher bits, then all 8 bits:
     memory[7] = 15;  /* 0000.1111 */
     memory[8] = 240; /* 1111.0000 */
     memory[9] = 255; /* 1111.1111 */
+
+A more efficient way to write this program is to use logical operators to
+operate on the initial `0000.1111` value. This loads `0000.1111` into the
+accumulator, then performs a logical NOT, resulting in `1111.0000`. Then
+it uses OR with the original `0000.1111` value to get `1111.1111` before
+performing another NOT to give the final `0000.0000` result:
+
+    memory[0] = 20; /* LOAD accum from addr */
+    memory[1] = 7;
+    memory[2] = 15; /* NOT */
+    memory[3] = 18; /* OR accum with addr */
+    memory[4] = 7;
+    memory[5] = 15; /* NOT */
+    memory[6] = 0;  /* STOP */
+    memory[7] = 15;  /* 0000.1111 */
 
 Or consider this sample program that moves a single light from the left
 to the right:
