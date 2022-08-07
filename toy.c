@@ -1,46 +1,56 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "cpu.h"    /* cpu virtual machine */
-#include "show.h"   /* show cpu virtual machine */
-
-#include "screen.h" /* screen control */
-
-extern int *memory;
+#include "screen.h"
+#include "input.h"
+#include "cpu.h"
 
 int
 main()
 {
-    /* allocate memory */
+  int inp;
+  int *mem;
+  
+  /* allocate memory */
 
-    memory = calloc(256, sizeof(int));
+  mem = calloc(256, sizeof(int));
 
-    if (memory == NULL) {
-	puts("out of memory");
-	return 1;
+  if (mem == NULL) {
+    puts("out of memory");
+    return EXIT_FAILURE;
+  }
+
+  for (int count = 0; count < 256; count++) {
+    mem[count] = 0;
+  }
+
+  /* initialize the virtual machine */
+
+  init_screen();
+
+  /* input and run program */
+
+  do {
+    inp = input_program(mem);
+
+    if ((inp == 'r') || (inp == 'R')) {
+      run_program(mem);
     }
+  } while ((inp != 'q') && (inp != 'Q'));
 
-    if (init_screen() == 0) {
-	puts("cannot set display");
-	return 2;
-    }
+  /* done */
 
-    /* set up the virtual machine */
+  end_screen();
 
-    title("Toy CPU Simulator");
-    init_vm();
+#if defined(DEBUG)
+  puts("debugging: first 10 program lines");
 
-/*
-    blinkenlights(128);
-*/
-    load_program();
-    run_program(0);
+  for (int count = 0; count < 10; count++) {
+    printf("%d: 0x%2.2x\n", count, mem[count]);
+  }
+#endif
 
-    /* done */
-
-    end_screen();
-
-    free(memory);
-
-    return 0;
+  free(mem);
+  
+  return EXIT_SUCCESS;
 }
