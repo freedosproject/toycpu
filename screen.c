@@ -1,70 +1,135 @@
+#include <curses.h> /* ncurses */
 #include <string.h> /* strlen */
 
-#include <conio.h>
-#include <graph.h>
+#include "bit.h"
+
+WINDOW *win_counter;
+WINDOW *win_instruction;
+WINDOW *win_accumulator;
 
 void
-title(const char *t)
+show_binary(WINDOW *win, int value)
 {
-    _settextwindow(1,1, 1, 80);
-    _setbkcolor(1); /* cyan */
-    _clearscreen(_GWINDOW);
+  wmove(win, 2, 2);
 
-    _settextcolor(7); /* white */
-    _settextposition(1, 40 - strlen(t)/2); /* in the window */
-    _outtext(t);
+  for (int bit = 7; bit >= 0; bit--) {
+    waddch(win, ((1<<bit) & value) ? BIT_1 : BIT_0 );
+  }
+  wrefresh(win);
 }
 
 void
-message(const char *m)
+print_title(const char *title)
 {
-    _settextwindow(25,1, 25,80);
-    _setbkcolor(7); /* white */
-    _clearscreen(_GWINDOW);
+  attron(A_BOLD);
+  
+  mvaddstr(0, (COLS - strlen(title)) / 2, title);
+  refresh();
 
-    _settextcolor(1); /* blue */
-    _settextposition(1, 2); /* in the window */
-    _outtext(m);
+  attroff(A_BOLD);
 }
 
 void
-error(const char *m)
+print_message(const char *msg)
 {
-    _settextwindow(25,1, 25,80);
-    _setbkcolor(4); /* red */
-    _clearscreen(_GWINDOW);
+  attron(A_REVERSE);
 
-    _settextcolor(14); /* yellow */
-    _settextposition(1, 2); /* in the window */
-    _outtext(m);
+  mvhline(LINES-1, 0, ' ', COLS);
+
+  mvaddstr(LINES-1, 0, msg);
+  refresh();
+
+  attroff(A_REVERSE);
 }
 
 void
-pause(void)
+print_instr(void)
 {
-    if (getch() == 0) {
-	getch();
-    }
+  int row, col;
+
+  row = LINES/5;
+  col = COLS - 9 /* instr */ - 7 /* mnem */;
+
+  attron(A_DIM);
+
+  mvaddstr(row++, col, "........ STOP");
+
+  mvaddstr(row++, col, ".......* RIGHT");
+  mvaddstr(row++, col, "......*. LEFT");
+
+  mvaddstr(row++, col, "....**** NOT");
+  mvaddstr(row++, col, "...*...* AND");
+  mvaddstr(row++, col, "...*..*. OR");
+  mvaddstr(row++, col, "...*..** XOR");
+
+  mvaddstr(row++, col, "...*.*.. LOAD");
+  mvaddstr(row++, col, "...*.*.* STORE");
+
+  mvaddstr(row++, col, "...*.**. ADD");
+  mvaddstr(row++, col, "...*.*** SUB");
+
+  mvaddstr(row++, col, "...**... GOTO");
+  mvaddstr(row++, col, "...**..* IFZERO");
+
+  mvaddstr(row++, col, "*....... NOP");
+
+  attroff(A_DIM);
 }
 
-int
+void
 init_screen(void)
 {
-    /* set up the screen */
+  /* init the screen */
 
-    if (_setvideomode(_TEXTC80) == 0) {
-	return 0;
-    }
+  initscr();
+  cbreak();
+  noecho();
 
-    _displaycursor(_GCURSOROFF);
+  /* title */
 
-    return 25;
+  print_title("Toy CPU Simulator");
+
+  /* windows */
+
+  win_counter = newwin(5, 12, LINES/5, COLS/4);
+  box(win_counter, 0, 0);
+  mvwaddstr(win_counter, 0, 1, "count");
+  wrefresh(win_counter);
+
+  win_instruction = newwin(5, 12, LINES/5, COLS/2);
+  box(win_instruction, 0, 0);
+  mvwaddstr(win_instruction, 0, 1, "instr");
+  wrefresh(win_instruction);
+
+  win_accumulator = newwin(5, 12, LINES/2, COLS/2);
+  box(win_accumulator, 0, 0);
+  mvwaddstr(win_accumulator, 0, 1, "accum");
+  wrefresh(win_accumulator);
+
+  /* init displays */
+
+  /*
+  show_binary(win_counter, 0);
+  show_binary(win_instruction, 0);
+  show_binary(win_accumulator, 0);
+  */
+
+  /* help */
+
+#if defined(USE_HELP)
+  print_instr();
+#endif
 }
 
 void
 end_screen(void)
 {
-    _displaycursor(_GCURSORON);
+  print_message("press any key to quit");
+  getch();
 
-    _setvideomode(_DEFAULTMODE);
+  delwin(win_counter);
+  delwin(win_instruction);
+  delwin(win_accumulator);
+
+  endwin();
 }
