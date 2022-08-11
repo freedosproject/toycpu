@@ -45,13 +45,14 @@ In "input mode," you use Left/Right and Space to flip the switches for
 an instruction.  When you're done entering an intruction, press Enter
 to go back to program mode.
 
-Press R to run the program. This always runs the program from the start.
+Press `R` to run the program. This always runs the program from the first
+instruction.
 
 Here are the opcodes for the Toy CPU, as currently implemented:
 
 <table>
 <tr>
-<th>opcode</th><th>Name</th><th>Descriptioon</th>
+<th>opcode</th><th>Name</th><th>Description</th>
 </tr>
 <tr>
 <th>00000000</th><td>STOP</td>
@@ -112,8 +113,8 @@ Here are the opcodes for the Toy CPU, as currently implemented:
 <td>No operation; safely ignored.</td>
 </table>
 
-Any other unrecognized instruction is the equivalent of a NOP. However,
-do not rely on other opcodes being the same as NOP.  For example, in
+Any other unrecognized instruction is the equivalent of a `NOP`. However,
+do not rely on other opcodes being the same as `NOP`. For example, in
 the current version of the Toy, any instruction with `...1....` will
 also perform an extra fetch operation.
 
@@ -160,25 +161,25 @@ lighting up all the lights on the accumulator.
 
 A more efficient way to write this program is to use logical operators to
 operate on the initial `00001111` value. This loads `00001111` into the
-accumulator, then performs a logical NOT, resulting in `11110000`. Then
-it uses OR with the original `00001111` value to get `11111111` before
-performing another NOT to give the final `00000000` result:
+accumulator, then performs a logical `NOT`, resulting in `11110000`. Then
+it uses `OR` with the original `00001111` value to get `11111111` before
+performing another `NOT` to give the final `00000000` result:
 
     0. LOAD
     1. "A"
     2. NOT
     3. OR
     4. "A"
-    5. STOP
-    6. NOP
+    5. NOP
+    6. STOP
     7. "A" = 00001111
 
 If you want to edit a program that's already entered into memory, you may
-need to use NOP statements to skip over now-unused instructions. In this
+need to use `NOP` statements to skip over now-unused instructions. In this
 example, I modified the previous "Flash the lights" program, which had
-"A" at instruction 7.  Since the updated program ends at instruction 5,
-I added a `NOP` statement at instruction 6. Note that "B" and "C" are
-not used in the new version, and are effectively ignored.
+`STOP` at instruction 6. Since the updated program ends at instruction 4,
+I added a `NOP` statement at instruction 5 so the program would flow to
+the `STOP` at instruction 6.
 
 ### Move a light ###
 
@@ -200,7 +201,7 @@ the "loop start" at instruction 2, and "end" at instuction 7.  I always
 write out my programs on paper first, and using this notation makes it
 easier to go back later and fill in the instruction values. For example,
 use the value `00000111` (7) at instruction 4, and the value `00000010`
-(2) at insruction 6.
+(2) at instruction 6.
 
 ### Countdown ###
 
