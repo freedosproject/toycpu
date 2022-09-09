@@ -37,7 +37,7 @@ program, the Toy CPU starts at zero for the first instruction.
 ## Programming
 
 You enter a program using "switches and lights" on the front panel,
-like our primitive ancestors might have done. In "program mode," you use
+similar to computers in the 1960s or 1970s. In "program mode," you use
 Up/Down to select the instruction you want to edit, then press Enter to
 input an instruction.
 
