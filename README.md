@@ -1,22 +1,36 @@
-# Toy CPU
+Toy CPU
+=======
 
 A simulation of a Minimal Instruction Set Computer
 
-## Status
+Status
+------
 
-Working version (Linux ncurses)
+Working version (FreeDOS graphical mode)
 
-## License
+License
+-------
 
 MIT
 
-## History
+History
+-------
 
-I wanted to have a simple hobby "educational" computer, similar to
-the Altair 8800, where you input a series of program instructions using
-switches and LEDs, and run simple programs that way. Among other reasons,
-I also wanted to use this as a demonstration for an undergraduate class
-I teach about how technology works.
+I teach university courses part-time, and one course that I teach is
+MIS 100, where students learn how technology works. For our section on
+"programming," I usually talk about programming in very abstract terms,
+because these are not Computer Science students. But this year, I wanted
+to try something new.
+
+I hoped to start the "programming" discussion by walking my students
+through a history of programming, so they could see the next step
+and how that worked. I tried to find a simple hobby "educational"
+computer, similar to the Altair 8800, where you input a series of program
+instructions in "machine language" (binary opcodes) using switches and
+LEDs. I wanted the instructions to be simple enough that my students could
+write a few simple programs, like `A+B=C`, and use that as a starting
+point to write the same program in Assembly, and in C, and ... you get
+the idea.
 
 But I couldn't find a suitable "Altair-like" SBC for less than $100. There
 are "Altair" software emulators out there, but they faithfully reproduce
@@ -25,28 +39,73 @@ the Altair 8800, and that was too much overhead for my needs.
 So I decided to write my own hobby "educational" computer. I call it
 the Toy CPU.
 
-## How it works
+I wrote a rough prototype on DOS using character mode, but you couldn't
+enter a program on the "front panel."  Instead, you had to hard-code a
+program into memory, and recompile to run that. It was very primitive,
+but enough to know that it worked.
+
+Later, I completely rewrote the Toy CPU using Linux ncurses. This was
+still a prototype, but this time you could enter a program on the "front
+panel" by "flipping bits." It looked okay in ncurses, but I really wanted
+a graphical program.
+
+Open Jam 2022 came up at the right time! I decided to completely
+rewrite the Toy from scratch, using FreeDOS and other open source
+tools. I don't use graphical assets per se; instead, the Toy draws the
+interface elements using basic graphical functions from OpenWatcom (open
+source). If you're curious: I used FED (open source) as my editor. I ran
+FreeDOS inside VirtualBox (open source) running on top of Fedora Linux
+(open source). Everything in the pipeline was open source.
+
+The theme for Open Jam 2022 is "Light in the Darkness," which is a
+perfect fit for the Toy CPU, because of all the blinkenlights!
+
+How it works
+------------
 
 I intentionally kept this as a very simple implementation. My goals were
 to make it easy to write and easy to understand.
 
 The Toy CPU implements 256 bytes of program memory, and an
 accumulator. You program the Toy using binary opcodes. When you run a
-program, the Toy CPU starts at zero for the first instruction.
+program, the Toy CPU starts at counter zero for the first instruction.
 
-## Programming
+Programming
+-----------
 
-You enter a program using "switches and lights" on the front panel,
-similar to computers in the 1960s or 1970s. In "program mode," you use
-Up/Down to select the instruction you want to edit, then press Enter to
-input an instruction.
+When you start the Toy, it will "boot up" by clearing all the values in
+the 256-byte memory. You'll see it count up from 0 to 255 in the counter
+display, while the instruction and accumulator displays remain at zero.
 
-In "input mode," you use Left/Right and Space to flip the switches for
-an instruction.  When you're done entering an intruction, press Enter
-to go back to program mode.
+Look at the status display on the bottom-right of the Toy. You will see
+"PWR" when the Toy is turned on, and "INI" when the Toy is initializing.
 
-Press `R` to run the program. This always runs the program from the first
-instruction.
+After initialization, you'll be put into Input mode. Look on the status
+display and you will see "INP" light up to indicate you are in Input mode.
+
+In Input mode, you enter a program using "switches and lights" on the
+front panel, similar to computers in the 1960s or 1970s. Use the Up/Down
+arrow keys to select the instruction you want to edit, then press Enter
+to edit an instruction.
+
+Look on the status display, and you will see "EDT" light up to show you
+are in Edit mode.
+
+In Edit mode, use the Left/Right arrow keys to select a bit in the
+instruction, and hit Space to flip a specific bit in an instruction.
+When you're done entering an intruction, press Enter to go back to
+Input mode.
+
+From Input mode, press `R` to run the program. This always runs the
+program from the first instruction. The status display will light up
+"RUN" when the Toy runs your program.
+
+If you need to abort your program, press the Esc key during program
+execution and the Toy will light up the "ABT" in the status display
+before it drops you back into Input mode.
+
+To exit the Toy, press `Q` while in Input mode. The Toy will light up the
+"HLT" light on the status and then will quit to DOS.
 
 Here are the opcodes for the Toy CPU, as currently implemented:
 
@@ -118,9 +177,11 @@ do not rely on other opcodes being the same as `NOP`. For example, in
 the current version of the Toy, any instruction with `...1....` will
 also perform an extra fetch operation.
 
-## Sample programs ##
+Sample programs
+===============
 
-### Flash the lights ###
+Flash the lights
+----------------
 
 It helps to understand the Toy CPU by looking at a sample program. In
 this example, we'll "flash" the accumulator lights. First we'll light
@@ -128,11 +189,11 @@ up the lower bits, then the higher bits, then all 8 bits. This tests
 sequential operation of the Toy:
 
     0. LOAD
-    1. "A"
+    1. "A" (7)
     2. LOAD
-    3. "B"
+    3. "B" (8)
     4. LOAD
-    5. "C"
+    5. "C" (9)
     6. STOP
     7. "A" = 00001111
     8. "B" = 11110000
@@ -157,7 +218,8 @@ of the accumulator. Then it loads the value `11110000`, lighting up the
 left side of the accumulator. Finally, it loads the value `11111111`,
 lighting up all the lights on the accumulator.
 
-### Flash the lights (alternate method) ###
+Flash the lights (alternate method)
+-----------------------------------
 
 A more efficient way to write this program is to use logical operators to
 operate on the initial `00001111` value. This loads `00001111` into the
@@ -166,10 +228,10 @@ it uses `OR` with the original `00001111` value to get `11111111` before
 performing another `NOT` to give the final `00000000` result:
 
     0. LOAD
-    1. "A"
+    1. "A" (7)
     2. NOT
     3. OR
-    4. "A"
+    4. "A" (7)
     5. NOP
     6. STOP
     7. "A" = 00001111
@@ -181,18 +243,19 @@ example, I modified the previous "Flash the lights" program, which had
 I added a `NOP` statement at instruction 5 so the program would flow to
 the `STOP` at instruction 6.
 
-### Move a light ###
+Move a light
+------------
 
 Or consider this sample program that moves a single light from the left
 to the right:
 
     0. LOAD
-    1. "A"
+    1. "A" (8)
     2. RIGHT ("loop start")
     3. IFZERO
-    4. "end"
+    4. "end" (7)
     5. GOTO
-    6. "loop start"
+    6. "loop start" (2)
     7. STOP ("end")
     8. "A" = 10000000
 
@@ -203,33 +266,35 @@ easier to go back later and fill in the instruction values. For example,
 use the value `00000111` (7) at instruction 4, and the value `00000010`
 (2) at instruction 6.
 
-### Countdown ###
+Countdown
+---------
 
 Or this sample program that counts down from 15:
 
     0. LOAD
-    1. "A"
+    1. "A" (9)
     2. SUB ("loop start")
-    3. "one"
+    3. "one" (10)
     4. IFZERO
-    5. "end"
+    5. "end" (8)
     6. GOTO
-    7. "loop start"
+    7. "loop start" (2)
     8. STOP ("end")
     9. "A" = 00001111 (15)
     10. "one" = 00000001 (1)
 
-### A + B = C ###
+A + B = C
+---------
 
 Consider this short program that adds two values, "A" and "B," and stores
 the result in the variable "C."
 
     0. LOAD
-    1. "A"
+    1. "A" (7)
     2. ADD
-    3. "B"
+    3. "B" (8)
     4. STORE
-    5. "C"
+    5. "C" (9)
     6. STOP
     7. "A" = some number
     8. "B" = some other number
@@ -240,20 +305,21 @@ the result of adding "A" and "B" together. It will be the same value as
 the accumulator when the program has stopped running. Note that whatever
 value was stored in "C" beforehand will be overwritten.
 
-### Compare A and B ###
+Compare A and B
+---------------
 
 Or this sample program that compares two numbers, "A" and "B." If they
 are the same, the accumulator displays `00000000`. If they are different,
 the accumulator displays `11111111`:
 
     0. LOAD
-    1. "A"
+    1. "A" (9)
     2. XOR
-    3. "B"
+    3. "B" (10)
     4. IFZERO
-    5. "end"
+    5. "end" (8)
     6. LOAD
-    7. "X"
+    7. "X" (11)
     8. STOP ("end")
     9. "A" = some number
     10. "B" = some other number
