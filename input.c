@@ -1,97 +1,123 @@
-#include <curses.h>
+#include <conio.h>
+#include <graph.h>
 
-#include "bit.h"
+#include "binary.h"
 #include "screen.h"
 
-int
-get_binary(WINDOW *win, int initval)
+void
+erase_pointer(int shift)
 {
-  int key;
-  int num;
-  int bit = 7;
-  
-  num = initval;
+#define INSTR_X 330
+#define INSTR_Y 140
+#define SIZE 32
 
-  keypad(win, TRUE);
-  intrflush(win, FALSE);
+    _setcolor(0); /* black */
+    _rectangle(_GFILLINTERIOR, INSTR_X + (7-shift)*SIZE, INSTR_Y,
+	INSTR_X + (7-shift)*SIZE + SIZE, INSTR_Y + 2);
+}
 
-  /* set bold, so we know we are in "input" mode */
-  
-  wattron(win, A_BOLD);
-  show_binary(win, num);
-
-  /* read a binary value from the user, by simulating switches and
-     lights on a dashboard */
-
-  do {
-    wmove(win, 2, 2 + 7-bit); /* position cursor over the switch */
-    key = wgetch(win);
-
-    switch(key) {
-    case '-':
-    case KEY_LEFT: /* left: move key bit left (higher) */
-      bit = (bit<7 ? bit+1 : 7);
-      break;
-
-    case '+':
-    case KEY_RIGHT: /* right: move key bit right (lower) */
-      bit = (bit>0 ? bit-1 : 0);
-      break;
-      
-    case ' ': /* space bar */
-      /* flip the bit */
-      num = num ^ (1<<bit);
-      waddch(win, (num & (1<<bit)) ? BIT_1 : BIT_0);
-    }
-  } while ((key != KEY_ENTER) && (key != '\n'));
-
-  /* show the result in normal text */
-  
-  wattroff(win, A_BOLD);
-  show_binary(win, num);
-
-  return num;
+void
+show_pointer(int shift)
+{
+    _setcolor(15); /* br white */
+    _rectangle(_GFILLINTERIOR, INSTR_X + (7-shift)*SIZE, INSTR_Y,
+	INSTR_X + (7-shift)*SIZE + SIZE, INSTR_Y + 2);
 }
 
 int
-input_program(int *mem)
+edit_instruction(int instr)
 {
-  int key;
-  int count = 0;
+    int key;
+    int value, shift = 7;
 
-  keypad(win_counter, TRUE);
-  intrflush(win_counter, FALSE);
+    /* read an instruction value from the user, by simulating switches
+	and lights */
 
-  /* allow the user to enter a program in binary. enter 'R' to return
-     and run program. */
+    draw_status(STATUS_EDT); /* edit mode */
 
-  print_message("program mode | up/down = prev/next | enter = input | R = run | Q = quit");
+    value = instr;
+    show_pointer(shift);
 
-  do {
-    show_instruction(mem[count]);
-    show_counter(count); /* draw this last so the cursor is shown there */
+    do {
+	key = getch();
 
-    key = wgetch(win_counter);
+	switch (key) {
+	case 0: /* extended key .. call getch again */
+	    switch ( getch() ) {
+	    case 75: /* left .. increment shift */
+		if (shift < 7) {
+		    erase_pointer(shift);
+		    show_pointer(++shift);
+		}
+		break;
 
-    switch(key) {
-    case '-':
-    case KEY_UP: /* up: go to previous instruction in memory */
-      count = (count>0 ? count-1 : 0);
-      break;
+	    case 77: /* right .. decrement shift */
+		if (shift > 0) {
+		    erase_pointer(shift);
+		    show_pointer(--shift);
+		}
+	    }
+	    break;
 
-    case '+':
-    case KEY_DOWN: /* down: go to next instruction in memory */
-      count = (count<255 ? count+1 : 255);
-      break;
+	case 32: /* space .. flip the bit value */
+	    value = value ^ (1<<shift);
+	    draw_instr(value);
+	}
+    } while (key != 13); /* 13 = Enter */
 
-    case '\n':
-    case KEY_ENTER: /* change this instruction in memory */
-      print_message("input mode | left/right = prev/next | space = flip | enter = done");
-      mem[count] = get_binary(win_instruction, mem[count]);
-      print_message("program mode | up/down = prev/next | enter = input | R = run | Q = quit");
-    }
-  } while ((key != 'r') && (key != 'R')
-	   && (key != 'q') && (key != 'Q'));
+    erase_pointer(shift);
+    return value;
+}
 
-  return key;
+int
+input_program(int *mem, int start)
+{
+    int counter;
+    int key;
+
+    /* allow the user to step through the program memory, and select
+	a program instruction to edit */
+
+    draw_status(STATUS_INP); /* input mode */
+
+    counter = start;
+
+    draw_count(counter);
+    draw_instr(mem[counter]);
+
+    /* loop: select the instruction to edit */
+
+    do {
+	key = getch();
+
+	switch (key) {
+	case 0:
+	    /* extended key .. call getch again */
+
+	    switch ( getch() ) {
+	    case 72: /* up .. decrement counter */
+		if (counter > 0) {
+		    draw_count(--counter);
+		    draw_instr(mem[counter]);
+		}
+		break;
+
+	    case 80: /* down .. increment counter */
+		if (counter < 255) {
+		    draw_count(++counter);
+		    draw_instr(mem[counter]);
+		}
+	    }
+	    break;
+
+	case 13: /* enter .. edit this instruction */
+	    mem[counter] = edit_instruction(mem[counter]);
+	    draw_status(STATUS_INP); /* input mode */
+	}
+    } while ((key != 'r') && (key != 'R')
+	    && (key != 'q') && (key != 'Q'));
+
+    /* done when the user presses R (run) or Q (quit) */
+
+    return key;
 }
