@@ -1,56 +1,103 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include <stdlib.h> /* calloc, free */
 
+#include <conio.h>
+#include <graph.h>
+
+#include "binary.h"
 #include "screen.h"
+
 #include "input.h"
 #include "cpu.h"
+
+void
+init_vm(int *mem)
+{
+    int count;
+
+
+    /* light up the blinkenlights */
+
+    draw_status(STATUS_PWR); /* turn on power */
+
+    draw_accum(0); /* accumulator is zero */
+
+    draw_instr(0); /* set every instruction to zero */
+
+    /* set every instruction to zero */
+
+    draw_status(STATUS_INI); /* initialize */
+
+    for (count = 0; count < 256; count++) {
+	draw_count(count);
+	mem[count] = 0;
+    }
+}
 
 int
 main()
 {
-  int inp;
-  int *mem;
-  
-  /* allocate memory */
+    int *mem;
+    int input;
+    int count;
 
-  mem = calloc(256, sizeof(int));
+    /* allocate memory: 0..255 integer instructions */
 
-  if (mem == NULL) {
-    puts("out of memory");
-    return EXIT_FAILURE;
-  }
+    mem = calloc(256, sizeof(int));
 
-  for (int count = 0; count < 256; count++) {
-    mem[count] = 0;
-  }
-
-  /* initialize the virtual machine */
-
-  init_screen();
-
-  /* input and run program */
-
-  do {
-    inp = input_program(mem);
-
-    if ((inp == 'r') || (inp == 'R')) {
-      run_program(mem);
+    if (mem == NULL) {
+	puts("Cannot allocate memory: 256 bytes");
+	return EXIT_FAILURE;
     }
-  } while ((inp != 'q') && (inp != 'Q'));
 
-  /* done */
+    /* set up the screen */
 
-  end_screen();
+    if (init_screen() == 0) {
+	puts("Cannot set video mode: 640x480 @ 16 colors");
+	return EXIT_FAILURE;
+    }
 
-#if defined(DEBUG)
-  puts("debugging: first 10 program lines");
+    /* start up the VM */
 
-  for (int count = 0; count < 10; count++) {
-    printf("%d: 0x%2.2x\n", count, mem[count]);
-  }
-#endif
+    init_vm(mem);
 
-  free(mem);
-  
-  return EXIT_SUCCESS;
+    /* input and run the program */
+
+    do {
+	input = input_program(mem, 0);
+
+	if ((input == 'r') || (input == 'R')) {
+	    /* entered, now run starting at zero */
+	    run_program(mem, 0);
+	}
+    } while ((input != 'q') && (input != 'Q'));
+
+    /* done */
+
+    draw_status(STATUS_HLT);
+
+    tick(); /* tick of CPU clock */
+
+    /* no one will see the status lights turn off because it will be
+	so fast, but it makes me happy to do this */
+
+    draw_count(0);
+    draw_instr(0);
+    draw_accum(0);
+    draw_status(STATUS_OFF);
+
+    end_screen();
+
+    /* debugging: dump the program */
+
+/*
+    puts("Debugging:");
+    for (count = 0; count < 20; count++) {
+	printf("mem[%d] = %d\n", count, mem[count]);
+    }
+*/
+
+    free(mem);
+
+    return EXIT_SUCCESS;
 }
