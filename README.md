@@ -16,98 +16,100 @@ MIT
 History
 -------
 
-I teach university courses part-time, and one course that I teach is
-MIS 100, where students learn how technology works. For our section on
-"programming," I usually talk about programming in very abstract terms,
-because these are not Computer Science students. But this year, I wanted
-to try something new.
+I teach university courses part-time, including a class
+about general computing topics, open to all majors. This
+is an introductory course that teaches students about how
+technology works, to remove the mystery around computing.
 
-I hoped to start the "programming" discussion by walking my students
-through a history of programming, so they could see the next step
-and how that worked. I tried to find a simple hobby "educational"
-computer, similar to the Altair 8800, where you input a series of program
-instructions in "machine language" (binary opcodes) using switches and
-LEDs. I wanted the instructions to be simple enough that my students could
-write a few simple programs, like `A+B=C`, and use that as a starting
-point to write the same program in Assembly, and in C, and ... you get
-the idea.
+While not a computer science course, one section of this
+course covers computer programming. I usually talk about
+programming in very abstract terms, so I don't lose my
+audience. But this year, I wanted my students to do some
+"hands-on" programming in an "old school" way. At the
+same time, I wanted to keep it simple, so everyone could
+follow along.
 
-But I couldn't find a suitable "Altair-like" SBC for less than $100. There
-are "Altair" software emulators out there, but they faithfully reproduce
-the Altair 8800, and that was too much overhead for my needs.
+I like to structure my lessons to show how you got from
+"there" to "here." Ideally, I would let my students
+learn how to write a simple program. Then I would pick
+it up from there to show how modern programming allows
+developers to create more complex programs. I decided to
+try an unconventional approach - teach the students about
+the ultimate in low-level programming: machine language.
 
-So I decided to write my own hobby "educational" computer. I call it
-the Toy CPU.
-
-I wrote a rough prototype on DOS using character mode, but you couldn't
-enter a program on the "front panel."  Instead, you had to hard-code a
-program into memory, and recompile to run that. It was very primitive,
-but enough to know that it worked.
-
-Later, I completely rewrote the Toy CPU using Linux ncurses. This was
-still a prototype, but this time you could enter a program on the "front
-panel" by "flipping bits." It looked okay in ncurses, but I really wanted
-a graphical program.
-
-Open Jam 2022 came up at the right time! I decided to completely
-rewrite the Toy from scratch, using FreeDOS and other open source
-tools. I don't use graphical assets per se; instead, the Toy draws the
-interface elements using basic graphical functions from OpenWatcom (open
-source). If you're curious: I used FED (open source) as my editor. I ran
-FreeDOS inside VirtualBox (open source) running on top of Fedora Linux
-(open source). Everything in the pipeline was open source.
-
-The theme for Open Jam 2022 is "Light in the Darkness," which is a
-perfect fit for the Toy CPU, because of all the blinkenlights!
 
 How it works
 ------------
 
-I intentionally kept this as a very simple implementation. My goals were
-to make it easy to write and easy to understand.
+Early personal computers like the Apple II (1977), TRS-80
+(1977), and IBM PC (1981) let users enter programs with a
+keyboard, and displayed results on a screen. But computers
+didn't always come with a screen and keyboard.
 
-The Toy CPU implements 256 bytes of program memory, and an
-accumulator. You program the Toy using binary opcodes. When you run a
-program, the Toy CPU starts at counter zero for the first instruction.
+The Altair 8800 and IMSAI 8080 (both made in 1975) required
+users to enter a program using "switches and lights" on a
+panel. You would enter an instruction in machine language,
+using a bank of switches, and the machine would light up
+the ones and zeros of each binary instruction using LEDs.
+
+Programming these early machines required knowing the
+machine language instructions, called opcodes, short
+for operation codes, to perform basic operations like
+adding two numbers or storing a value into the computer's
+memory. I wanted to show my students how programmers would
+enter a series of instructions and memory addresses by
+hand, using the switches and lights.
+
+However, using an actual Altair 8800 would be too much
+overhead in this class. I needed something simple that
+any beginner-level student could grasp. Ideally, I hoped
+to find a simple "hobby" retro computer that worked
+similarly to the Altair 8800, but I couldn't find a
+suitable "Altair-like" device for less than $100. I found
+several "Altair" software emulators, but they faithfully
+reproduce the Altair 8800 opcodes, and that was too much
+for my needs.
+
+I decided to write my own "educational" retro
+computer. I call it the Toy CPU. You can find it on my
+GitHub repository, including several releases to play
+with. Version 1 was an experimental prototype that ran on
+FreeDOS. Version 2 was an updated prototype that ran on
+Linux with ncurses. Version 3 is a FreeDOS program that
+runs in graphics mode.
+
 
 Programming
 -----------
 
-When you start the Toy, it will "boot up" by clearing all the values in
-the 256-byte memory. You'll see it count up from 0 to 255 in the counter
-display, while the instruction and accumulator displays remain at zero.
+The Toy CPU is a very simple retro computer. Sporting only
+256 bytes of memory and a minimal instruction set, the Toy
+CPU aims for simplicity while replicating the "switches and
+lights" programming model. The interface mimics the Altair
+8800, with a series of eight LEDs for the counter (the
+"line number" for the program), instruction, accumulator
+(internal memory used for temporary data), and status.
 
-Look at the status display on the bottom-right of the Toy. You will see
-"PWR" when the Toy is turned on, and "INI" when the Toy is initializing.
+When you start the Toy CPU, it simulates "booting" by
+clearing the memory. While the Toy CPU is starting up,
+it also displays INI ("initialize") in the status lights
+at the bottom-right of the screen. The PWR ("power")
+light indicates the Toy CPU has been turned on.
 
-After initialization, you'll be put into Input mode. Look on the status
-display and you will see "INP" light up to indicate you are in Input mode.
+When the Toy CPU is ready for you to enter a program,
+it indicates INP ("input" mode) via the status lights,
+and starts you at counter 0 in the program. Programs for
+the Toy CPU always start at counter 0.
 
-In Input mode, you enter a program using "switches and lights" on the
-front panel, similar to computers in the 1960s or 1970s. Use the Up/Down
-arrow keys to select the instruction you want to edit, then press Enter
-to edit an instruction.
+In "input" mode, use the up and down arrow keys to show
+the different program counters, and press Enter to edit
+the instruction at the current counter. When you enter
+"edit" mode, the Toy CPU shows EDT ("edit" mode) on the
+status lights.
 
-Look on the status display, and you will see "EDT" light up to show you
-are in Edit mode.
-
-In Edit mode, use the Left/Right arrow keys to select a bit in the
-instruction, and hit Space to flip a specific bit in an instruction.
-When you're done entering an intruction, press Enter to go back to
-Input mode.
-
-From Input mode, press `R` to run the program. This always runs the
-program from the first instruction. The status display will light up
-"RUN" when the Toy runs your program.
-
-If you need to abort your program, press the Esc key during program
-execution and the Toy will light up the "ABT" in the status display
-before it drops you back into Input mode.
-
-To exit the Toy, press `Q` while in Input mode. The Toy will light up the
-"HLT" light on the status and then will quit to DOS.
-
-Here are the opcodes for the Toy CPU, as currently implemented:
+The Toy CPU has a cheat sheet that's "taped" to the front
+of the display. This lists the different opcodes the Toy
+CPU can process:
 
 <table>
 <tr>
@@ -172,10 +174,10 @@ Here are the opcodes for the Toy CPU, as currently implemented:
 <td>No operation; safely ignored.</td>
 </table>
 
-Any other unrecognized instruction is the equivalent of a `NOP`. However,
-do not rely on other opcodes being the same as `NOP`. For example, in
-the current version of the Toy, any instruction with `...1....` will
-also perform an extra fetch operation.
+When in "edit" mode, use the left and right arrow keys
+to select a bit in the opcode, and press Space to flip
+the value between off (0) and on (1). When you are done
+editing, press Enterto go back to "input" mode.
 
 Sample programs
 ===============
