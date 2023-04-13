@@ -124,6 +124,8 @@ run_instruction(int *mem, int counter)
 	}
     }
 
+    Accumulator &= 255; /* keep accum in bounds 0 to 255: 11111111 */
+
     /* update the display */
 
     draw_accum(Accumulator);
