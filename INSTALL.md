@@ -3,6 +3,8 @@ How to Compile Toy CPU
 
 Version 3
 ---------
+The current version is 3.1 (Apr 13, 2023)
+
 If you're trying to run the Version 3 of the Toy CPU, note that this
 is a DOS program, so you need to run it under DOS. I use FreeDOS in a
 virtual machine on Linux, but you can use DOSBox if you prefer.
@@ -16,7 +18,7 @@ LiveCD by running `FDIMPLES` and selecting the OpenWatcom C compiler.
 Set up your DOS environment with OpenWatcom C using the `OWSETENV.BAT`
 batch file, then do this:
 
-1. Download the toycpu-3.0.zip source archive
+1. Download the toycpu-3.1.zip source archive
 2. Copy the zip file to your FreeDOS instance (I might save it as TOYCPU.ZIP so you can stay within the 8.3 filenames)
 3. Extract the archive in FreeDOS with `unzip -j toycpu.zip -d toycpu` (the `-j` option says to "junk" the paths, and `-d` says to extract to the `toycpu` directory)
 4. Go into the source directory with `cd toycpu`
