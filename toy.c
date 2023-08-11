@@ -54,6 +54,7 @@ main()
 
     if (init_screen() == 0) {
 	puts("Cannot set video mode: 640x480 @ 16 colors");
+	free(mem);
 	return EXIT_FAILURE;
     }
 
